@@ -19,6 +19,12 @@ Globals:
         PROXY_DETAILS_KEY: "sock5_proxy.json"
         USER_AGENTS_KEY: "user_agents.pkl"
 
+Parameters:
+  SNSEmailParameter:
+    Type: String
+    Description: Enter email address for execution failure SNS topic subscription.
+    NoEcho: true
+
 Resources:
   TescoScrapeStateMachine:
     Type: AWS::Serverless::StateMachine
@@ -33,7 +39,7 @@ Resources:
         PostprocessDataFunctionArn: !GetAtt PostprocessDataFunction.Arn
         UpdateMasterTableFunctionArn: !GetAtt UpdateMasterTableFunction.Arn
       Events:
-        CryptoBuySchedule:
+        RunSchedule:
           Type: Schedule
           Properties:
             Description: Scrapes product details from Tesco website and stores in tesco-scrape-pipeline bucket.
@@ -61,11 +67,17 @@ Resources:
     Properties:
       BucketName: tesco-scrape-pipeline
       AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
       LifecycleConfiguration:
         Rules:
           - Id: Expire non-current versions after a day
             Status: Enabled
-            NoncurrentVersionExpiration: 1
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 1
           - Id: Expire raw data after a day
             Prefix: raw_data/
             Status: Enabled
@@ -146,12 +158,12 @@ Resources:
       Policies:
         - S3CrudPolicy:
             BucketName: "tesco-scrape-pipeline"
-  
+
   TescoScrapeFailureTopic:
     Type: AWS::SNS::Topic
     Properties:
       Subscription:
-      - Endpoint: "superbrandonlee@hotmail.com"
+      - Endpoint: !Ref SNSEmailParameter
         Protocol: email
   
   ExecutionFailureAlarm:
@@ -174,10 +186,10 @@ Resources:
         - !Ref TescoScrapeFailureTopic
 
 Outputs:
-  # CryptoBuySchedule is an implicit Schedule event rule created out of Events key under Serverless::StateMachine
-  CryptoBuyStateMachineArn:
-    Description: "Crypto AutoBuy State machine ARN"
-    Value: !Ref CryptoBuyStateMachine
-  CryptoBuyStateMachineRoleArn:
-    Description: "IAM Role created for Crypto AutoBuy State machine based on the specified SAM Policy Templates"
-    Value: !GetAtt CryptoBuyStateMachineRole.Arn
+  # RunSchedule is an implicit Schedule event rule created out of Events key under Serverless::StateMachine
+  TescoScrapeStateMachineArn:
+    Description: "Tesco Scrape State Machine machine ARN"
+    Value: !Ref TescoScrapeStateMachine
+  TescoScrapeStateMachineRoleArn:
+    Description: "IAM Role created for Tesco Scrape State Machine based on the specified SAM Policy Templates"
+    Value: !GetAtt TescoScrapeStateMachineRole.Arn
