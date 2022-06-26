@@ -124,7 +124,7 @@ def scrape_products(
 
 def lambda_handler(event, context):
     # Bucket containing project files
-    BUCKET = os.environ['BUCKET']
+    BUCKET = os.environ['BUCKET_NAME']
 
     # Get SOCKS5 proxy details
     proxy_dict, _ = load_proxy_details(BUCKET, os.environ['PROXY_DETAILS_KEY'])

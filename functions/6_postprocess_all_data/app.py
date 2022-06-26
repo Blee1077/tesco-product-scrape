@@ -73,7 +73,7 @@ def lambda_handler(event, context):
     prod_df['date'] = pd.Timestamp.today().date()
     
     # Save processed dataframe to S3
-    BUCKET = os.environ['BUCKET']
+    BUCKET = os.environ['BUCKET_NAME']
     curr_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     save_path = f's3://{BUCKET}/processed_data/{curr_datetime}_processed_data.csv'
     prod_df.to_csv(save_path, index=False)

@@ -121,7 +121,7 @@ def partition_list(groc_cat_pages: dict, pages_per_partition: int) -> list:
 def lambda_handler(event, context):
     # Load in proxy details
 
-    proxies, exp_date = load_proxy_details(os.environ['BUCKET'], os.environ['PROXY_DETAILS_KEY'])
+    proxies, exp_date = load_proxy_details(os.environ['BUCKET_NAME'], os.environ['PROXY_DETAILS_KEY'])
     logging.info("Loaded in SOCK5 proxy details")
     
     # Check proxy is still valid to use

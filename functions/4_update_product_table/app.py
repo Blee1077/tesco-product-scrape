@@ -19,7 +19,7 @@ def lambda_handler(event, context):
 
 
     # Try to load and update JSON of master products table
-    BUCKET = os.environ['BUCKET']
+    BUCKET = os.environ['BUCKET_NAME']
     master_prod_key = "master_data/all_product_ids_names.json"
     missed_prod_ids = []
     try:

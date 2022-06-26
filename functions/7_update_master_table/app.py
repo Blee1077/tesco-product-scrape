@@ -30,7 +30,7 @@ def lambda_handler(event, context):
         scraped_df[col] = scraped_df[col].astype(dtype)
 
     # Try loading in master scraped data table
-    BUCKET = os.environ['BUCKET']
+    BUCKET = os.environ['BUCKET_NAME']
     master_data_path = "s3://{BUCKET}/master_data/scraped_product_data.parquet"
     try:
         master_df = pd.read_parquet(master_data_path)
