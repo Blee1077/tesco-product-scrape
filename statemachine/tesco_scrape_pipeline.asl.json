@@ -1,0 +1,130 @@
+{
+    "Comment": "Pipeline to scrape product details from Tesco website.",
+    "StartAt": "GetAndPartitionCategories",
+    "States": {
+      "GetAndPartitionCategories": {
+        "Comment": "Start by getting Tesco shopping categories and partitioning them.",
+        "Type": "Task",
+        "Resource": "${PartitionCategoriesFunctionArn}",
+        "Next": "MapScrapeCategories"
+      },
+      "MapScrapeCategories": {
+        "Comment": "",
+        "Type": "Map",
+        "Next": "CombineResults",
+        "InputPath": "$",
+        "ResultPath": "$.partition_results",
+        "ItemsPath": "$.body.partitions",
+        "MaxConcurrency": 2,
+        "Iterator": {
+          "StartAt": "ScrapeCategories",
+          "States": {
+            "ScrapeCategories": {
+              "Type": "Task",
+              "Resource": "${ScrapeCategoriesFunctionArn}",
+              "End": true,
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "States.TaskFailed"
+                  ],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 2,
+                  "BackoffRate": 5
+                }
+              ]
+            }
+          }
+        }
+      },
+      "CombineResults": {
+        "Comment": "Combines the results from mapped scraping processes.",
+        "ResultPath": "$.combined_json_paths.1",
+        "Parameters": {
+          "combined_json_path_suffix": 1,
+          "partition_results.$": "$.partition_results"
+        },
+        "Type": "Task",
+        "Next": "FilterInput1",
+        "Resource": "${CombineDataFunctionArn}"
+      },
+      "FilterInput1": {
+        "Comment": "",
+        "Type": "Pass",
+        "Next": "UpdateMasterProductsTable",
+        "Parameters": {
+          "combined_json_paths.$": "$.combined_json_paths"
+        }
+      },
+      "UpdateMasterProductsTable": {
+        "Comment": "",
+        "Type": "Task",
+        "ResultPath": "$.partitions",
+        "Next": "MapScrapeMissedProducts",
+        "Resource": "${UpdateProductTableFunctionArn}"
+      },
+      "MapScrapeMissedProducts": {
+        "Comment": "",
+        "Type": "Map",
+        "MaxConcurrency": 2,
+        "Next": "FilterInput2",
+        "InputPath": "$",
+        "ResultPath": "$.partition_results",
+        "ItemsPath": "$.partitions",
+        "Iterator": {
+          "StartAt": "ScrapeMissedProducts",
+          "States": {
+            "ScrapeMissedProducts": {
+              "Comment": "",
+              "Type": "Task",
+              "End": true,
+              "Resource": "${ScrapeMissedProductsFunctionArn}",
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "States.TaskFailed"
+                  ],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 2,
+                  "BackoffRate": 5
+                }
+              ]
+            }
+          }
+        }
+      },
+      "FilterInput2": {
+        "Comment": "",
+        "Type": "Pass",
+        "Next": "CombineResultsAgain",
+        "Parameters": {
+          "combined_json_paths.$": "$.combined_json_paths",
+          "partition_results.$": "$.partition_results"
+        }
+      },
+      "CombineResultsAgain": {
+        "Comment": "Combines the results from mapped scraping processes.",
+        "Type": "Task",
+        "ResultPath": "$.combined_json_paths.2",
+        "Parameters": {
+          "combined_json_paths.$": "$.combined_json_paths",
+          "combined_json_path_suffix": 2,
+          "partition_results.$": "$.partition_results"
+        },
+        "Next": "PostprocessData",
+        "Resource": "${CombineDataFunctionArn}"
+      },
+      "PostprocessData": {
+        "Comment": "",
+        "Type": "Task",
+        "Next": "UpdateMasterScrapedProductsTable",
+        "Resource": "${PostprocessDataFunctionArn}"
+      },
+      "UpdateMasterScrapedProductsTable": {
+        "Comment": "",
+        "Type": "Task",
+        "End": true,
+        "Resource": "${UpdateMasterTableFunctionArn}"
+      }
+    }
+  }

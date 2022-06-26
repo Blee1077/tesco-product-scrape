@@ -1,0 +1,183 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  tesco-scrape-pipeline
+
+Globals:
+  Function:
+    Runtime: python3.9
+    Handler: app.lambda_handler
+    Timeout: 900
+    MemorySize: 850
+    Layers:
+      - !Ref UtilityLayer
+    Architectures:
+        - x86_64
+    Environment:
+      Variables:
+        BUCKET_NAME: "tesco-scrape-pipeline"
+        PROXY_DETAILS_KEY: "sock5_proxy.json"
+        USER_AGENTS_KEY: "user_agents.pkl"
+
+Resources:
+  TescoScrapeStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: statemachine/tesco_scrape_pipeline.asl.json
+      DefinitionSubstitutions:
+        PartitionCategoriesFunctionArn: !GetAtt PartitionCategoriesFunction.Arn
+        ScrapeCategoriesFunctionArn: !GetAtt ScrapeCategoriesFunction.Arn
+        CombineDataFunctionArn: !GetAtt CombineDataFunction.Arn
+        UpdateProductTableFunctionArn: !GetAtt UpdateProductTableFunction.Arn
+        ScrapeMissedProductsFunctionArn: !GetAtt ScrapeMissedProductsFunction.Arn
+        PostprocessDataFunctionArn: !GetAtt PostprocessDataFunction.Arn
+        UpdateMasterTableFunctionArn: !GetAtt UpdateMasterTableFunction.Arn
+      Events:
+        CryptoBuySchedule:
+          Type: Schedule
+          Properties:
+            Description: Scrapes product details from Tesco website and stores in tesco-scrape-pipeline bucket.
+            Enabled: true
+            Schedule: cron(0 8 * * ? *) # Everyday at 8:00am UTC
+            Input: '{"pages_per_partition": 50}'
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PartitionCategoriesFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ScrapeCategoriesFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref CombineDataFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref UpdateProductTableFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ScrapeMissedProductsFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PostprocessDataFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref UpdateMasterTableFunction
+  
+  TescoScrapeS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: tesco-scrape-pipeline
+      AccessControl: Private
+      LifecycleConfiguration:
+        Rules:
+          - Id: Expire non-current versions after a day
+            Status: Enabled
+            NoncurrentVersionExpiration: 1
+          - Id: Expire raw data after a day
+            Prefix: raw_data/
+            Status: Enabled
+            ExpirationInDays: 1
+          - Id: Expire intermediate data after a day
+            Prefix: intermediate_data/
+            Status: Enabled
+            ExpirationInDays: 1
+          - Id: Expire processed data after a day
+            Prefix: processed_data/
+            Status: Enabled
+            ExpirationInDays: 1
+      VersioningConfiguration:
+        Status: Enabled
+    DeletionPolicy: Retain
+
+  UtilityLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: util_layer
+      CompatibleRuntimes:
+        - python3.9
+    Metadata:
+      BuildMethod: python3.9
+
+  PartitionCategoriesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/1_partition_categories/
+      Policies:
+        - S3ReadPolicy:
+            BucketName: "tesco-scrape-pipeline"
+
+  ScrapeCategoriesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/2_scrape_categories/
+      Policies:
+        - S3CrudPolicy:
+            BucketName: "tesco-scrape-pipeline"
+
+  CombineDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/3_combine_data/
+      Policies:
+        - S3CrudPolicy:
+            BucketName: "tesco-scrape-pipeline"
+
+  UpdateProductTableFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/4_update_product_table/
+      Policies:
+        - S3CrudPolicy:
+            BucketName: "tesco-scrape-pipeline"
+  
+  ScrapeMissedProductsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/5_scrape_missed_products/
+      Policies:
+        - S3CrudPolicy:
+            BucketName: "tesco-scrape-pipeline"
+
+  PostprocessDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/6_postprocess_all_data/
+      Policies:
+        - S3CrudPolicy:
+            BucketName: "tesco-scrape-pipeline"
+
+  UpdateMasterTableFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/7_update_master_table/
+      Policies:
+        - S3CrudPolicy:
+            BucketName: "tesco-scrape-pipeline"
+  
+  TescoScrapeFailureTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Subscription:
+      - Endpoint: "superbrandonlee@hotmail.com"
+        Protocol: email
+  
+  ExecutionFailureAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      ActionsEnabled: true
+      AlarmDescription: 'Sends an alarm when the tesco scrape pipeline state machine fails.'
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+         - Name: StateMachineArn
+           Value: !Ref TescoScrapeStateMachine
+      EvaluationPeriods: 1
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 21600
+      Threshold: 1
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref TescoScrapeFailureTopic
+
+Outputs:
+  # CryptoBuySchedule is an implicit Schedule event rule created out of Events key under Serverless::StateMachine
+  CryptoBuyStateMachineArn:
+    Description: "Crypto AutoBuy State machine ARN"
+    Value: !Ref CryptoBuyStateMachine
+  CryptoBuyStateMachineRoleArn:
+    Description: "IAM Role created for Crypto AutoBuy State machine based on the specified SAM Policy Templates"
+    Value: !GetAtt CryptoBuyStateMachineRole.Arn
