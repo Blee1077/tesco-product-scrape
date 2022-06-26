@@ -12,7 +12,7 @@ Globals:
     Layers:
       - !Ref UtilityLayer
     Architectures:
-        - x86_64
+      - x86_64
     Environment:
       Variables:
         BUCKET_NAME: "tesco-scrape-pipeline"
