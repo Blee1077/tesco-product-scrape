@@ -3,3 +3,4 @@ requests[socks]
 beautifulsoup4
 urllib3
 pysock
+numpy
