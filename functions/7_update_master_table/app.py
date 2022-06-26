@@ -31,7 +31,7 @@ def lambda_handler(event, context):
 
     # Try loading in master scraped data table
     BUCKET = os.environ['BUCKET_NAME']
-    master_data_path = "s3://{BUCKET}/master_data/scraped_product_data.parquet"
+    master_data_path = f"s3://{BUCKET}/master_data/scraped_product_data.parquet"
     try:
         master_df = pd.read_parquet(master_data_path)
         logging.info(f"Number of rows in master scraped data table: {len(master_df)}")
