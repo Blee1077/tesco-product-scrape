@@ -44,7 +44,7 @@ def scrape_categories(partitions: list, proxies: dict, user_agents: dict) -> dic
             prod_dict = {}
             for idx, prod in enumerate(product_list, 0):
                 prod_name = prod.find('span', class_="styled__Text-sc-1xbujuz-1 ldbwMG beans-link__text").get_text()
-                prod_id = int(prod.find('a', class_="styled__Anchor-sc-1xbujuz-0 bmBCJq beans-link__anchor")['href'].split('/')[-1])
+                prod_id = int(prod.find('div', class_="styles__StyledTiledContent-dvv1wj-3 bcglTg")['data-auto-id'])
             
                 try:
                     prod_price_per_unit = float(
