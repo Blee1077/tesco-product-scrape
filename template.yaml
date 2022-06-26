@@ -23,7 +23,6 @@ Parameters:
   SNSEmailParameter:
     Type: String
     Description: Enter email address for execution failure SNS topic subscription.
-    NoEcho: true
 
 Resources:
   TescoScrapeStateMachine:
