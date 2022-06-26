@@ -9,7 +9,6 @@
         "Next": "MapScrapeCategories"
       },
       "MapScrapeCategories": {
-        "Comment": "",
         "Type": "Map",
         "Next": "CombineResults",
         "InputPath": "$",
@@ -49,7 +48,6 @@
         "Resource": "${CombineDataFunctionArn}"
       },
       "FilterInput1": {
-        "Comment": "",
         "Type": "Pass",
         "Next": "UpdateMasterProductsTable",
         "Parameters": {
@@ -57,14 +55,12 @@
         }
       },
       "UpdateMasterProductsTable": {
-        "Comment": "",
         "Type": "Task",
         "ResultPath": "$.partitions",
         "Next": "MapScrapeMissedProducts",
         "Resource": "${UpdateProductTableFunctionArn}"
       },
       "MapScrapeMissedProducts": {
-        "Comment": "",
         "Type": "Map",
         "MaxConcurrency": 2,
         "Next": "FilterInput2",
@@ -75,7 +71,6 @@
           "StartAt": "ScrapeMissedProducts",
           "States": {
             "ScrapeMissedProducts": {
-              "Comment": "",
               "Type": "Task",
               "End": true,
               "Resource": "${ScrapeMissedProductsFunctionArn}",
@@ -94,7 +89,6 @@
         }
       },
       "FilterInput2": {
-        "Comment": "",
         "Type": "Pass",
         "Next": "CombineResultsAgain",
         "Parameters": {
@@ -115,13 +109,11 @@
         "Resource": "${CombineDataFunctionArn}"
       },
       "PostprocessData": {
-        "Comment": "",
         "Type": "Task",
         "Next": "UpdateMasterScrapedProductsTable",
         "Resource": "${PostprocessDataFunctionArn}"
       },
       "UpdateMasterScrapedProductsTable": {
-        "Comment": "",
         "Type": "Task",
         "End": true,
         "Resource": "${UpdateMasterTableFunctionArn}"
