@@ -101,8 +101,8 @@ def scrape_products(
         cat_dict = {}
         replace_list = ["'", "+", ",", '"',]
         if cat_str:
-            for idx, cat in enumerate(cat_str.split('/')[2:], 1):
-                if idx == 4:
+            for cat_idx, cat in enumerate(cat_str.split('/')[2:], 1):
+                if cat_idx == 4:
                     for s in replace_list:
                         cat = cat.replace(s, '')
                 cat_dict[f"category_{cat_idx}"] = cat
