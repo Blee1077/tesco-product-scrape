@@ -93,7 +93,7 @@ Resources:
         Status: Enabled
     DeletionPolicy: Retain
 
-  TescoScrapeTescoScrapeUtilityLayer:
+  TescoScrapeUtilityLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       ContentUri: util_layer
