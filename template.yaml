@@ -154,7 +154,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/7_update_master_table/
-      MemorySize: 2000
+      MemorySize: 4000
       Policies:
         - S3CrudPolicy:
             BucketName: "tesco-scrape-pipeline"
