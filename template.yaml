@@ -10,7 +10,7 @@ Globals:
     Timeout: 900
     MemorySize: 850
     Layers:
-      - !Ref UtilityLayer
+      - !Ref TescoScrapeUtilityLayer
     Architectures:
       - x86_64
     Environment:
@@ -93,7 +93,7 @@ Resources:
         Status: Enabled
     DeletionPolicy: Retain
 
-  UtilityLayer:
+  TescoScrapeTescoScrapeUtilityLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       ContentUri: util_layer
