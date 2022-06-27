@@ -15,9 +15,9 @@ Globals:
       - x86_64
     Environment:
       Variables:
-        BUCKET_NAME: "tesco-scrape-pipeline"
-        PROXY_DETAILS_KEY: "sock5_proxy.json"
-        USER_AGENTS_KEY: "user_agents.pkl"
+        BUCKET_NAME: !Ref TescoScrapeS3Bucket # S3 bucket that will be made when stack deploys
+        PROXY_DETAILS_KEY: "sock5_proxy.json" # JSON file that contains proxy details (you need to put this in BUCKET_NAME once stack has been deployed, structure defined in README)
+        USER_AGENTS_KEY: "user_agents.pkl" # Pickle file that contains proxy details (you need to put this in BUCKET_NAME once stack has been deployed)
 
 Parameters:
   SNSEmailParameter:
@@ -64,7 +64,7 @@ Resources:
   TescoScrapeS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: tesco-scrape-pipeline
+      BucketName: tesco-scrape-pipeline # This needs to be changed when you run it because I've taken this S3 bucket name
       AccessControl: Private
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
@@ -108,7 +108,7 @@ Resources:
       CodeUri: functions/1_partition_categories/
       Policies:
         - S3ReadPolicy:
-            BucketName: "tesco-scrape-pipeline"
+            BucketName: !Ref TescoScrapeS3Bucket
 
   ScrapeCategoriesFunction:
     Type: AWS::Serverless::Function
@@ -116,7 +116,7 @@ Resources:
       CodeUri: functions/2_scrape_categories/
       Policies:
         - S3CrudPolicy:
-            BucketName: "tesco-scrape-pipeline"
+            BucketName: !Ref TescoScrapeS3Bucket
 
   CombineDataFunction:
     Type: AWS::Serverless::Function
@@ -124,7 +124,7 @@ Resources:
       CodeUri: functions/3_combine_data/
       Policies:
         - S3CrudPolicy:
-            BucketName: "tesco-scrape-pipeline"
+            BucketName: !Ref TescoScrapeS3Bucket
 
   UpdateProductTableFunction:
     Type: AWS::Serverless::Function
@@ -132,7 +132,7 @@ Resources:
       CodeUri: functions/4_update_product_table/
       Policies:
         - S3CrudPolicy:
-            BucketName: "tesco-scrape-pipeline"
+            BucketName: !Ref TescoScrapeS3Bucket
   
   ScrapeMissedProductsFunction:
     Type: AWS::Serverless::Function
@@ -140,7 +140,7 @@ Resources:
       CodeUri: functions/5_scrape_missed_products/
       Policies:
         - S3CrudPolicy:
-            BucketName: "tesco-scrape-pipeline"
+            BucketName: !Ref TescoScrapeS3Bucket
 
   PostprocessDataFunction:
     Type: AWS::Serverless::Function
@@ -148,7 +148,7 @@ Resources:
       CodeUri: functions/6_postprocess_all_data/
       Policies:
         - S3CrudPolicy:
-            BucketName: "tesco-scrape-pipeline"
+            BucketName: !Ref TescoScrapeS3Bucket
 
   UpdateMasterTableFunction:
     Type: AWS::Serverless::Function
@@ -157,7 +157,7 @@ Resources:
       MemorySize: 4000
       Policies:
         - S3CrudPolicy:
-            BucketName: "tesco-scrape-pipeline"
+            BucketName: !Ref TescoScrapeS3Bucket
 
   TescoScrapeFailureTopic:
     Type: AWS::SNS::Topic
