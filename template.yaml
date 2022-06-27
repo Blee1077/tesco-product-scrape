@@ -16,8 +16,8 @@ Globals:
     Environment:
       Variables:
         BUCKET_NAME: !Ref TescoScrapeS3Bucket # S3 bucket that will be made when stack deploys
-        PROXY_DETAILS_KEY: "sock5_proxy.json" # JSON file that contains proxy details (you need to put this in BUCKET_NAME once stack has been deployed, structure defined in README)
-        USER_AGENTS_KEY: "user_agents.pkl" # Pickle file that contains proxy details (you need to put this in BUCKET_NAME once stack has been deployed)
+        PROXY_DETAILS_KEY: "sock5_proxy.json" # JSON file that contains proxy details (you need to put this in TescoScrapeS3Bucket once stack has been deployed, structure defined in README)
+        USER_AGENTS_KEY: "user_agents.pkl" # Pickle file that contains proxy details (you need to put this in TescoScrapeS3Bucket once stack has been deployed)
 
 Parameters:
   SNSEmailParameter:
