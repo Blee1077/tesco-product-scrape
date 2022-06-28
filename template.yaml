@@ -8,7 +8,6 @@ Globals:
     Runtime: python3.9
     Handler: app.lambda_handler
     Timeout: 900
-    MemorySize: 850
     Layers:
       - !Ref TescoScrapeUtilityLayer
     Architectures:
@@ -106,6 +105,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/1_partition_categories/
+      MemorySize: 150
       Policies:
         - S3ReadPolicy:
             BucketName: !Ref TescoScrapeS3Bucket
@@ -114,6 +114,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/2_scrape_categories/
+      MemorySize: 185
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref TescoScrapeS3Bucket
@@ -122,6 +123,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/3_combine_data/
+      MemorySize: 100
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref TescoScrapeS3Bucket
@@ -130,6 +132,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/4_update_product_table/
+      MemorySize: 150
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref TescoScrapeS3Bucket
@@ -138,6 +141,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/5_scrape_missed_products/
+      MemorySize: 200
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref TescoScrapeS3Bucket
@@ -146,6 +150,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/6_postprocess_all_data/
+      MemorySize: 225
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref TescoScrapeS3Bucket
@@ -154,7 +159,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/7_update_master_table/
-      MemorySize: 4000
+      MemorySize: 2500
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref TescoScrapeS3Bucket
