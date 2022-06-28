@@ -123,7 +123,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/3_combine_data/
-      MemorySize: 100
+      MemorySize: 128
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref TescoScrapeS3Bucket
