@@ -19,9 +19,9 @@ def get_shopping_categories(proxies: dict) -> list:
     URL = "https://www.tesco.com/groceries/en-GB/shop"
     page = requests.get(
         URL,
-        headers={'User-agent': 'tmp'},
+        headers={'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36'},
         proxies=proxies,
-        timeout=10
+        timeout=120
     )
     soup = BeautifulSoup(page.content, "html.parser")
 
@@ -60,9 +60,9 @@ def get_page_num_per_category(grocery_categories: list, proxies: dict) -> dict:
         URL = f"https://www.tesco.com/groceries/en-GB/shop/{groc_cat}/all?count=48"
         page = requests.get(
             URL,
-            headers={'User-agent': 'tmp'},
+            headers={'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36'},
             proxies=proxies,
-            timeout=10
+            timeout=120
         )
         soup = BeautifulSoup(page.content, "html.parser")
         

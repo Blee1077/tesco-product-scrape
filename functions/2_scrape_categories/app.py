@@ -35,7 +35,7 @@ def scrape_categories(partitions: list, proxies: dict, user_agents: dict) -> dic
                 URL,
                 headers={'User-agent': user_agents[user_agent_idx]['useragent']},
                 proxies=proxies,
-                timeout=30
+                timeout=120
             )
             soup = BeautifulSoup(page.content, "html.parser")
             
