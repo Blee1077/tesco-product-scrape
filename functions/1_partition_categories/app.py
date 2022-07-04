@@ -3,11 +3,12 @@ import requests
 import math
 import datetime
 import logging
+import numpy as np
 from bs4 import BeautifulSoup
-from utilities import load_proxy_details
+from utilities import load_proxy_details, load_pickle
 logging.getLogger().setLevel(logging.INFO)
 
-def get_shopping_categories(proxies: dict) -> list:
+def get_shopping_categories(proxies: dict, user_agents: dict) -> list:
     """Gets the grocery shopping categories from Tesco.
 
     Args:
@@ -17,9 +18,11 @@ def get_shopping_categories(proxies: dict) -> list:
         List of Tesco grocery shopping categories
     """
     URL = "https://www.tesco.com/groceries/en-GB/shop"
+    user_agent_idx = np.random.randint(low=0, high=len(user_agents)-1)
+
     page = requests.get(
         URL,
-        headers={'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36'},
+        headers={'User-agent': user_agents[user_agent_idx]['useragent']},
         proxies=proxies,
         timeout=120
     )
@@ -44,7 +47,7 @@ def get_shopping_categories(proxies: dict) -> list:
     return grocery_categories
 
 
-def get_page_num_per_category(grocery_categories: list, proxies: dict) -> dict:
+def get_page_num_per_category(grocery_categories: list, proxies: dict, user_agents: dict) -> dict:
     """Calculates the number of pages per shopping category on Tesco assuming 48 items is listed per page.
 
     Args:
@@ -56,11 +59,13 @@ def get_page_num_per_category(grocery_categories: list, proxies: dict) -> dict:
     """
     groc_cat_pages = {}
     groc_cat_num_items = {}
+    user_agent_idx = np.random.randint(low=0, high=len(user_agents)-1)
+
     for groc_cat in grocery_categories:
         URL = f"https://www.tesco.com/groceries/en-GB/shop/{groc_cat}/all?count=48"
         page = requests.get(
             URL,
-            headers={'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36'},
+            headers={'User-agent': user_agents[user_agent_idx]['useragent']},
             proxies=proxies,
             timeout=120
         )
@@ -119,8 +124,8 @@ def partition_list(groc_cat_pages: dict, pages_per_partition: int) -> list:
 
 
 def lambda_handler(event, context):
-    # Load in proxy details
 
+    # Load in proxy details
     proxies, exp_date = load_proxy_details(os.environ['BUCKET_NAME'], os.environ['PROXY_DETAILS_KEY'])
     logging.info("Loaded in SOCK5 proxy details")
     
@@ -132,15 +137,16 @@ def lambda_handler(event, context):
     days_remaining = (exp_date - curr_date).days
     if days_remaining <= 14:
         logging.warning(f"Proxy is valid for {days_remaining} days before expiring.")
-        
-    # Get Tesco shopping categories
-    grocery_categories = get_shopping_categories(proxies)
-    logging.info(f"Scraped Tesco grocery categories: {grocery_categories}")
     
-    # Check if in test mode
-    if 'test' in event:
-        grocery_categories = grocery_categories[:event['test']]
-        print(f"Test mode. Restricting to categories: {grocery_categories}")
+    # Get list of user agents
+    user_agents = load_pickle(
+        bucket=os.environ['BUCKET_NAME'],
+        key=os.environ['USER_AGENTS_KEY']
+    )
+
+    # Get Tesco shopping categories
+    grocery_categories = get_shopping_categories(proxies, user_agents)
+    logging.info(f"Scraped Tesco grocery categories: {grocery_categories}")
 
     # Get number of pages in each category
     groc_cat_pages, groc_cat_num_items = get_page_num_per_category(grocery_categories, proxies)
