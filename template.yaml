@@ -41,7 +41,7 @@ Resources:
           Type: Schedule
           Properties:
             Description: Scrapes product details from Tesco website and stores in tesco-scrape-pipeline bucket.
-            Enabled: true
+            Enabled: false
             Schedule: cron(0 8 * * ? *) # Everyday at 8:00am UTC
             Input: '{"pages_per_partition": 50}'
       Policies:
@@ -63,7 +63,6 @@ Resources:
   TescoScrapeS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: tesco-scrape-pipeline # This needs to be changed when you run it because I've taken this S3 bucket name
       AccessControl: Private
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
