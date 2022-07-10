@@ -18,7 +18,7 @@ At its core, the application consists of seven Lambda functions, a Lambda layer 
 2. SAM CLI - [Install the SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 3. Python 3 - [Install Python 3](https://www.python.org/downloads/)
 4. Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community)
-6. A JSON file named named `"sock5_proxy.json"` containing email details with the following structure:
+6. A JSON file named named `"sock5_proxy.json"` containing a SOCKS5 proxy details with the following structure:
 
     ```yaml
     {
@@ -33,7 +33,7 @@ At its core, the application consists of seven Lambda functions, a Lambda layer 
 
 The `template.yaml` contains the following user-defined global environment variables:
 
-- `PROXY_DETAILS_KEY` - The filename of the JSON file which contains your Coinbase Pro API key, the structure of which is defined in the pre-requisites section above, set to `"sock5_proxy.json"` by default.
+- `PROXY_DETAILS_KEY` - The filename of the JSON file which contains a SOCKS5 proxy details, the structure of which is defined in the pre-requisites section above, set to `"sock5_proxy.json"` by default.
 - `USER_AGENTS_KEY` - The filename of the pickle file which contains a list of user agents to use when making URL requests.
 
 
