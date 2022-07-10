@@ -1,12 +1,16 @@
-# tesco-product-scrape
+# Tesco website product scraper
+[![forthebadge](https://forthebadge.com/images/badges/made-with-python.svg)](https://forthebadge.com) [![forthebadge](https://forthebadge.com/images/badges/designed-in-etch-a-sketch.svg)](https://forthebadge.com)
 
-This project contains source code and supporting files for an AWS-based serverless application that scrapes product information from Tesco's website that you can deploy with the SAM CLI. It includes the following files and folders:
+:warning: This application requires a UK-based residential proxy as Tesco's website blocks access based on IP addresses :warning:
 
-- functions - Code for the application's Lambda functions to check the value of, buy, or sell shares of a stock.
-- statemachines - Definition for the state machine that orchestrates the stock trading workflow.
+The purpose of this project is to create an AWS-based serverless application that scrapes product pricing and category details from Tesco's website. The core functionality is an AWS Step Function that runs AWS Lambda functions in a sequence and is scheduled to run on a user-defined frequency using an EventBridge rule, AWS SAM is used to create all the necessary AWS resources to get this application up and running. In the event that the state machine fails, an alarm will be sent to the email used to set up SNS notifications.
+
+At its core, the application consists of seven Lambda functions, a Lambda layer containing commonly used functions across the functions, a Step Function which orchestrates the pipeline, and an AWS SAM template which creates and deploys all the AWS resources. These are contained in the following riles and folders:
+
+- functions - Folder containing subfolders, which of which contains code for a Lambda function.
+- statemachines - Definition for the state machine that orchestrates the product scraping pipeline.
+- util_layer - Utility functions that are shared across Lambda functions.
 - template.yaml - A template that defines the application's AWS resources.
-
-This application creates a mock stock trading workflow which runs on a pre-defined schedule (note that the schedule is disabled by default to avoid incurring charges). It demonstrates the power of Step Functions to orchestrate Lambda functions and other AWS resources to form complex and robust workflows, coupled with event-driven development using Amazon EventBridge.
 
 ## Pre-requisites
 
@@ -14,38 +18,23 @@ This application creates a mock stock trading workflow which runs on a pre-defin
 2. SAM CLI - [Install the SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 3. Python 3 - [Install Python 3](https://www.python.org/downloads/)
 4. Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community)
-5. A JSON file named `"cbpro-api-secret.json"` containing your Coinbase Pro API key details ([instructions here to create API key](https://help.coinbase.com/en/pro/other-topics/api/how-do-i-create-an-api-key-for-coinbase-pro)) with the following structure:
+6. A JSON file named named `"sock5_proxy.json"` containing email details with the following structure:
 
     ```yaml
     {
-        "secret": PUT_SECRET_HERE
-        "key": PUT_KEY_HERE
-        "passphrase": PUT_PASSPHRASE_HERE
+        "username": "PUT_USERNAME_HERE"           # Username for proxy as string
+        "password": "PUT_PASSWORD_HERE"           # Password for proxy as string
+        "address": "PUT_IPv4_PROXY_ADDRESS_HERE"  # IPv4 proxy address as string
+        "port": PUT_PROXY_SERVER_PORT_HERE        # Port number needed to communicate with proxy server as integer
+        "expiry": "PUT_PROXY_EXPIRY_DATE_HERE"    # Expiry date of proxy in "YYYY-MM-DD" format as string
     }
-    ```
-6. A JSON file named `"kucoin-api-secret.json"` containing your KuCoin API key details ([instructions here to create API key](https://www.kucoin.com/support/360015102174-How-to-Create-an-API)) with the following structure:
-
-    ```yaml
-    {
-        "secret": PUT_SECRET_HERE
-        "key": PUT_KEY_HERE
-        "passphrase": PUT_PASSPHRASE_HERE
-    }
-    ```
-
 
 ## Configurations
 
 The `template.yaml` contains the following user-defined global environment variables:
 
-- `COINBASE_SECRET_KEY` - The filename of the JSON file which contains your Coinbase Pro API key, the structure of which is defined in the pre-requisites section above, set to `"cbpro-api-secret.json"` by default.
-- `KUCOIN_SECRET_KEY` - The filename of the JSON file which contains your KuCoin API key, the structure of which is defined in the pre-requisites section above, set to `"kucoin-api-secret.json"` by default.
-- `MONTHLY_FREQ` - How many times to buy in a month, set to `2` by default.
-- `MONTHLY_FUND` - How much in £ to invest per month, set to `400` by default
-- `RATIO_BTC` - Proportion of MONTHLY_FUND to invest in Bitcoin (BTC), set to `0.425` by default.
-- `RATIO_ETH` - Proportion of MONTHLY_FUND to invest in Ethereum (ETH), set to `0.425` by default.
-- `RATIO_OPCT` - Proportion of (1 - RATIO_BTC - RATIO_ETH) * MONTHLY_FUND to invest in Opacity (OPCT), set to `0.1` by default.
-- `RATIO_TRAC` - Proportion of (1 - RATIO_BTC - RATIO_ETH) * MONTHLY_FUND to invest in Origin Trail (TRAC), set to `0.9` by default.
+- `PROXY_DETAILS_KEY` - The filename of the JSON file which contains your Coinbase Pro API key, the structure of which is defined in the pre-requisites section above, set to `"sock5_proxy.json"` by default.
+- `USER_AGENTS_KEY` - The filename of the pickle file which contains a list of user agents to use when making URL requests.
 
 
 ## Use the SAM CLI to build locally
@@ -84,5 +73,5 @@ You can find more information and examples about filtering Lambda function logs 
 To delete the sample application that you created, use the AWS CLI. Assuming you used your project name for the stack name, you can run the following:
 
 ```bash
-aws cloudformation delete-stack --stack-name tmp
+aws cloudformation delete-stack --stack-name tesco-product-scrape
 ```
