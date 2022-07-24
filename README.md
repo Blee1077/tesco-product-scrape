@@ -12,6 +12,53 @@ At its core, the application consists of seven Lambda functions, a Lambda layer 
 - util_layer - Utility functions that are shared across Lambda functions.
 - template.yaml - A template that defines the application's AWS resources.
 
+## Pipeline overview
+<p align="center">
+  <img src="figures/step_function_definition.png" width="300" title="State machine graph definition">
+</p>
+<p align = "center">
+Visualisation of the steps of the state machine. 
+</p>
+<br/>
+
+The steps in the pipeline are defined in the `statemachine/tesco_scrape_pipeline.asl.json` file. There are a total of 10 steps in the pipeline, 8 of which use Lambda functions. In brief, the main steps of the pipeline are:
+
+1. Get all the broad categories of products [from this link](https://www.tesco.com/groceries/en-GB/shop), find out how many pages of products there are for each category, and partition the pages into lists.
+2. For each partition, go through every page in it and from each page get the details of the products on it. The resulting scraped data for a partition is then saved into an S3 bucket. [Here's an example of one page in a partition](https://www.tesco.com/groceries/en-GB/shop/fresh-food/all). Currently designed to run two partitions concurrently.
+3. Combine the scraped outputs from each partition into one JSON file and save it into the same S3 bucket.
+4. Update a master product table which is a table containing product IDs and their correponding product name. If one doesn't exist then create one using the output from step 4.
+5. Using the master product table, identify if any products have been missed during step 2 and scrape the pages of missed products. If a product's page can't be accessed then remove it from the master product tables as it's assumed the product is discontinued.
+6. Combine the resulting outputs of the previous step into one JSON file and save into the S3 bucket.
+7. Load in the combined outputs from step 3 and 6, calculate the Clubcard discount percentage if there is one, add a column for the current date, and save as a CSV file.
+8. Update the master scraped data table using the output of step 7. If it doesn't exist, then create it using the output of step 7.
+
+<br/>
+The final file contains the following columns:
+
+| Column name  | Data type | Description |
+| ----------- | ---------- | ----------- |
+| id  | integer  | Product ID  |
+| name  | string  | Product name  |
+| price_per_unit  | float  | Price of the product  |
+| price_per_weight_quant  | float  | Price per unit  |
+| weight_quant_unit  | string  | Unit description (e.g., kg)  |
+| offer  | string  | Offer currently available on product   |
+| category_1  | string  | Main category of product  |
+| category_2  | string  | Sub-category of product  |
+| category_3  | string  | Sub-sub-category of product |
+| category_4  | string  | Sub-sub-sub-category of product  |
+| clubcard_price_per_unit  | float  | Clubcard price of product  |
+| clubcard_discount_perc  | float  | Clubcard discount percentage  |
+| date  | string  | Content Cell  |
+
+<br/>
+<p align="center">
+  <img src="figures/final_df_snippet.png" width="1250" title="Snippet of the master scraped data table.">
+</p>
+<p align = "center">
+Snippet of the master scraped data table. 
+</p>
+
 ## Pre-requisites
 
 1. An AWS account
@@ -37,11 +84,9 @@ The `template.yaml` contains the following user-defined global environment varia
 - `USER_AGENTS_KEY` - The filename of the pickle file which contains a list of user agents to use when making URL requests.
 
 
-## Use the SAM CLI to build locally
+## Build the application
 
-The Serverless Application Model Command Line Interface (SAM CLI) is an extension of the AWS CLI that adds functionality for building and testing Lambda applications. It uses Docker to run your functions in an Amazon Linux environment that matches Lambda. It can also emulate your application's build environment and API.
-
-Build this application with the `sam build --use-container` command. The `use-container` option makes it so that the build happens inside a Lambda-like container.
+The Serverless Application Model Command Line Interface (SAM CLI) is needed to build and deploy this application. Build this application with the `sam build --use-container` command. The `use-container` option makes it so that the build happens inside a Lambda-like container.
 
 ```bash
 sam build --use-container
