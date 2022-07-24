@@ -9,7 +9,7 @@ logging.getLogger().setLevel(logging.INFO)
 s3 = boto3.resource('s3')
 
 def convert_dict_to_dataframe(prod_dict):
-   # Specify the dtypes of columns to cast
+    # Specify the dtypes of columns to cast
     convert_dict = {
         'id': str,
         'name': str,
