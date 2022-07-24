@@ -43,7 +43,7 @@ def load_proxy_details(bucket: str, key: str) -> tuple:
 
     Returns:
         proxy_dict (dict): Proxy details to use with GET requests
-        proxy_details["expirary"] (str): Date of expiry
+        proxy_details["expiry"] (str): Date of expiry
     """
     # Load JSON containing proxy details from S3
     proxy_details = load_json(bucket=bucket, key=key)
@@ -62,4 +62,4 @@ def load_proxy_details(bucket: str, key: str) -> tuple:
         'http': http_connection
     }
 
-    return proxy_dict, proxy_details["expirary"]
+    return proxy_dict, proxy_details["expiry"]
