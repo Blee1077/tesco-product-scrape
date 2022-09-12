@@ -43,10 +43,10 @@ The final file contains the following columns:
 | price_per_weight_quant  | float  | Price per unit  |
 | weight_quant_unit  | string  | Unit description (e.g., kg)  |
 | offer  | string  | Offer currently available on product   |
-| category_1  | string  | Main category of product  |
-| category_2  | string  | Sub-category of product  |
-| category_3  | string  | Sub-sub-category of product |
-| category_4  | string  | Sub-sub-sub-category of product  |
+| category_1  | string  | Primary category of product  |
+| category_2  | string  | Secondary category of product  |
+| category_3  | string  | Tertiary category of product |
+| category_4  | string  | Quaternary category of product  |
 | clubcard_price_per_unit  | float  | Clubcard price of product  |
 | clubcard_discount_perc  | float  | Clubcard discount percentage  |
 | date  | string  | Content Cell  |
