@@ -17,7 +17,7 @@ At its core, the application consists of seven Lambda functions, a Lambda layer 
   <img src="figures/step_function_definition.png" width="300" title="State machine graph definition">
 </p>
 <p align = "center">
-Visualisation of the steps of the state machine. 
+Visualisation of the steps in the state machine. 
 </p>
 <br/>
 
